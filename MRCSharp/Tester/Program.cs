@@ -11,7 +11,8 @@ namespace Tester
         static void Main(string[] args)
         {
             MRCFile file = MRCParser.Parse(@"C:\Users\Ben\Downloads\tomography2_fullsirtcliptrim.mrc");
-            MRCFile labelFile = MRCParser.Parse(@"C:\Users\Ben\Downloads\tomography2_fullsirtcliptrim.labels4.mrc"); 
+            MRCFile label4File = MRCParser.Parse(@"C:\Users\Ben\Downloads\tomography2_fullsirtcliptrim.labels4.mrc");
+            MRCFile label7File = MRCParser.Parse(@"C:\Users\Ben\Downloads\tomography2_fullsirtcliptrim.labels7.mrc");
 
             float scaler = 255 / (file.MaxPixelValue - file.MinPixelValue);
 
@@ -25,10 +26,15 @@ namespace Tester
                     {
                         for (int x = 0; x < frame.Width; x++, i++)
                         {
-                            if(labelFile.Frames[c].Data[i] > 0)
+                            if(label4File.Frames[c].Data[i] > 0)
                             {
                                 byte b = (byte)(frame.Data[i] * scaler);
                                 bmp.SetPixel(x, y, Color.Red);
+                            }
+                            else if (label7File.Frames[c].Data[i] > 0)
+                            {
+                                byte b = (byte)(frame.Data[i] * scaler);
+                                bmp.SetPixel(x, y, Color.Green);
                             }
                             else
                             {
