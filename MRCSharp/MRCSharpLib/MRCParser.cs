@@ -67,8 +67,16 @@ namespace MRCSharpLib
                         {
                             for (int x = 0; x < numColumns; x++, i++)
                             {
-                                float pixelValue = br.ReadSingle();
-                                frame.Data[i] = pixelValue;
+                                if(pixelType == 2)
+                                {
+                                    float pixelValue = br.ReadSingle();
+                                    frame.Data[i] = pixelValue;
+                                }
+                                else if(pixelType == 0)
+                                {
+                                    byte pixelValue = br.ReadByte();
+                                    frame.Data[i] = pixelValue; 
+                                }
                             }
                         }
 
