@@ -36,10 +36,10 @@ namespace Tester
 
         static void Main(string[] args)
         {
-            Console.WriteLine("Loading main file.."); 
+            Console.WriteLine("Loading main file..");
             MRCFile file = MRCParser.Parse(@"C:\Users\Ben\desktop\tomograms\tomography2_fullsirtcliptrim.mrc");
 
-            Console.WriteLine("Loading label files..."); 
+            Console.WriteLine("Loading label files...");
             List<MRCFile> labelFiles = new List<MRCFile>();
             labelFiles.Add(MRCParser.Parse(@"C:\Users\Ben\desktop\tomograms\tomography2_fullsirtcliptrim.labels.mrc"));
             labelFiles.Add(MRCParser.Parse(@"C:\Users\Ben\desktop\tomograms\tomography2_fullsirtcliptrim.labels2.mrc"));
@@ -55,39 +55,52 @@ namespace Tester
 
             float scaler = 255 / (file.MaxPixelValue - file.MinPixelValue);
 
-            List<PLYVertex> vertices = new List<PLYVertex>();
-            for (int z = 0; z < file.Frames.Count; z++)
+            int vertexCount = 0;
+            using (StreamWriter sw = new StreamWriter("C:/users/ben/desktop/pointCloudEnding.ply"))
             {
-                Console.WriteLine($"File {z}/{file.Frames.Count}");
-                MRCFrame frame = file.Frames[z];
-
-                using (Bitmap bmp = new Bitmap(frame.Width, frame.Height))
+                for (int z = 0; z < file.Frames.Count; z++)
                 {
+                    Console.WriteLine($"File {z}/{file.Frames.Count}");
+                    MRCFrame frame = file.Frames[z];
+
                     for (int y = 0, i = 0; y < frame.Height; y++)
                     {
                         for (int x = 0; x < frame.Width; x++, i++)
                         {
-                            bool labeled = false;
-                            int colorIndex = 0;
-                            foreach (MRCFile label in labelFiles)
+                            try
                             {
-                                if (label.Frames[z].Data[i] > 0)
+                                bool labeled = false;
+                                int colorIndex = 0;
+                                foreach (MRCFile label in labelFiles)
                                 {
-                                    byte b = (byte)(frame.Data[i] * scaler);
-                                    //bmp.SetPixel(x, y, colors[colorIndex]);
-                                    vertices.Add(new PLYVertex { X = x, Y = y, Z = z, Color = colors[colorIndex] });
-                                    labeled = true;
+                                    if (label.Frames[z].Data[i] > 0)
+                                    {
+                                        byte b = (byte)(frame.Data[i] * scaler);
+                                        //bmp.SetPixel(x, y, colors[colorIndex]);
+                                        sw.WriteLine("{0} {1} {2} {3} {4} {5}", x, y, z,
+                                            colors[colorIndex].R, colors[colorIndex].G, colors[colorIndex].B);
+                                        //vertices.Add(new PLYVertex { X = x, Y = y, Z = z, Color = colors[colorIndex] });
+                                        labeled = true;
+                                        vertexCount++;
+                                    }
+
+                                    colorIndex++;
                                 }
 
-                                colorIndex++;
+                                if (!labeled)
+                                {
+                                    byte b = (byte)(frame.Data[i] * scaler);
+                                    //bmp.SetPixel(x, y, Color.FromArgb(b, b, b));
+                                    sw.WriteLine("{0} {1} {2} {3} {4} {5}", x, y, z, b, b, b);
+                                    vertexCount++;
+                                    //vertices.Add(new PLYVertex { X = x, Y = y, Z = z, Color = Color.FromArgb(b, b, b) });
+                                }
                             }
-
-                            if (!labeled)
+                            catch
                             {
-                                byte b = (byte)(frame.Data[i] * scaler);
-                                //bmp.SetPixel(x, y, Color.FromArgb(b, b, b));
-
-                                vertices.Add(new PLYVertex { X = x, Y = y, Z = z, Color = Color.FromArgb(b, b, b) });
+                                sw.WriteLine("{0} {1} {2} {3} {4} {5}", x, y, z, 0, 0, 0);
+                                vertexCount++;
+                                //vertices.Add(new PLYVertex { X = x, Y = y, Z = z, Color = Color.FromArgb(0, 0, 0) });
                             }
                         }
                     }
@@ -96,8 +109,30 @@ namespace Tester
                 }
             }
 
-            Console.WriteLine("Saving...");
-            SavePLY("C:/users/ben/desktop/pointCloud.ply", vertices);
+            using (StreamWriter sw = new StreamWriter("c:/users/ben/desktop/pointCloud.ply"))
+            {
+                sw.WriteLine("ply");
+                sw.WriteLine("format ascii 1.0");
+                sw.WriteLine("element vertex " + vertexCount.ToString());
+                sw.WriteLine("property float x");
+                sw.WriteLine("property float y");
+                sw.WriteLine("property float z");
+                sw.WriteLine("property uchar red");
+                sw.WriteLine("property uchar green");
+                sw.WriteLine("property uchar blue");
+                sw.WriteLine("element face " + 0.ToString());
+                sw.WriteLine("property list uchar uint vertex_indices");
+                sw.WriteLine("end_header");
+
+                using (StreamReader sr = new StreamReader("C:/users/ben/desktop/pointCloudEnding.ply"))
+                {
+                    string l = null;
+                    while ((l = sr.ReadLine()) != null)
+                    {
+                        sw.WriteLine(l);
+                    }
+                }
+            }
         }
     }
 }
