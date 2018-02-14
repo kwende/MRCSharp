@@ -37,16 +37,16 @@ namespace Tester
         static void Main(string[] args)
         {
             Console.WriteLine("Loading main file..");
-            MRCFile file = MRCParser.Parse(@"C:\Users\Ben\desktop\tomograms\tomography2_fullsirtcliptrim.mrc");
+            MRCFile file = MRCParser.Parse(@"E:\Downloads\tomograms\tomography2_fullsirtcliptrim.mrc");
 
             Console.WriteLine("Loading label files...");
             List<MRCFile> labelFiles = new List<MRCFile>();
-            labelFiles.Add(MRCParser.Parse(@"C:\Users\Ben\desktop\tomograms\tomography2_fullsirtcliptrim.labels.mrc"));
-            labelFiles.Add(MRCParser.Parse(@"C:\Users\Ben\desktop\tomograms\tomography2_fullsirtcliptrim.labels2.mrc"));
-            labelFiles.Add(MRCParser.Parse(@"C:\Users\Ben\desktop\tomograms\tomography2_fullsirtcliptrim.labels3.mrc"));
-            labelFiles.Add(MRCParser.Parse(@"C:\Users\Ben\desktop\tomograms\tomography2_fullsirtcliptrim.labels4.mrc"));
-            labelFiles.Add(MRCParser.Parse(@"C:\Users\Ben\desktop\tomograms\tomography2_fullsirtcliptrim.labels5.mrc"));
-            labelFiles.Add(MRCParser.Parse(@"C:\Users\Ben\desktop\tomograms\tomography2_fullsirtcliptrim.labels7.mrc"));
+            labelFiles.Add(MRCParser.Parse(@"E:\Downloads\tomograms\tomography2_fullsirtcliptrim.labels.mrc"));
+            labelFiles.Add(MRCParser.Parse(@"E:\Downloads\tomograms\tomography2_fullsirtcliptrim.labels2.mrc"));
+            labelFiles.Add(MRCParser.Parse(@"E:\Downloads\tomograms\tomography2_fullsirtcliptrim.labels3.mrc"));
+            labelFiles.Add(MRCParser.Parse(@"E:\Downloads\tomograms\tomography2_fullsirtcliptrim.labels4.mrc"));
+            labelFiles.Add(MRCParser.Parse(@"E:\Downloads\tomograms\tomography2_fullsirtcliptrim.labels5.mrc"));
+            labelFiles.Add(MRCParser.Parse(@"E:\Downloads\tomograms\tomography2_fullsirtcliptrim.labels7.mrc"));
 
             Color[] colors = new Color[]
             {
@@ -77,8 +77,21 @@ namespace Tester
                                     {
                                         byte b = (byte)(frame.Data[i] * scaler);
                                         //bmp.SetPixel(x, y, colors[colorIndex]);
-                                        sw.WriteLine("{0} {1} {2} {3} {4} {5}", x, y, z,
-                                            colors[colorIndex].R, colors[colorIndex].G, colors[colorIndex].B);
+                                        for (int y1 = 0; y1 < 1; y1++)
+                                        {
+                                            for (int x1 = 0; x1 < 1; x1++)
+                                            {
+                                                for (int z1 = 0; z1 < 1; z1++)
+                                                {
+                                                    sw.WriteLine("{0} {1} {2} {3} {4} {5}", 
+                                                        x + x1 * file.PixelSize, 
+                                                        y + y1 * file.PixelSize, 
+                                                        z + z1 * file.PixelSize,
+                                                        colors[colorIndex].R, colors[colorIndex].G, colors[colorIndex].B);
+                                                }
+                                            }
+                                        }
+
                                         //vertices.Add(new PLYVertex { X = x, Y = y, Z = z, Color = colors[colorIndex] });
                                         labeled = true;
                                         vertexCount++;
@@ -87,19 +100,19 @@ namespace Tester
                                     colorIndex++;
                                 }
 
-                                if (!labeled)
-                                {
-                                    byte b = (byte)(frame.Data[i] * scaler);
-                                    //bmp.SetPixel(x, y, Color.FromArgb(b, b, b));
-                                    sw.WriteLine("{0} {1} {2} {3} {4} {5}", x, y, z, b, b, b);
-                                    vertexCount++;
-                                    //vertices.Add(new PLYVertex { X = x, Y = y, Z = z, Color = Color.FromArgb(b, b, b) });
-                                }
+                                //if (!labeled)
+                                //{
+                                //    byte b = (byte)(frame.Data[i] * scaler);
+                                //    //bmp.SetPixel(x, y, Color.FromArgb(b, b, b));
+                                //    sw.WriteLine("{0} {1} {2} {3} {4} {5}", x, y, z, b, b, b);
+                                //    vertexCount++;
+                                //    //vertices.Add(new PLYVertex { X = x, Y = y, Z = z, Color = Color.FromArgb(b, b, b) });
+                                //}
                             }
                             catch
                             {
-                                sw.WriteLine("{0} {1} {2} {3} {4} {5}", x, y, z, 0, 0, 0);
-                                vertexCount++;
+                                //sw.WriteLine("{0} {1} {2} {3} {4} {5}", x, y, z, 0, 0, 0);
+                                //vertexCount++;
                                 //vertices.Add(new PLYVertex { X = x, Y = y, Z = z, Color = Color.FromArgb(0, 0, 0) });
                             }
                         }

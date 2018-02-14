@@ -32,6 +32,12 @@ namespace MRCSharpLib
                     float cellSizeY = br.ReadSingle();
                     float cellSizeZ = br.ReadSingle();
 
+                    float xSpacing = cellSizeX / gridSizeX;
+                    float ySpacing = cellSizeY / gridSizeY;
+                    float zSpacing = cellSizeZ / gridSizeZ;
+
+                    ret.PixelSize = xSpacing;
+
                     float alpha = br.ReadSingle();
                     float beta = br.ReadSingle();
                     float gamma = br.ReadSingle();
@@ -67,15 +73,15 @@ namespace MRCSharpLib
                         {
                             for (int x = 0; x < numColumns; x++, i++)
                             {
-                                if(pixelType == 2)
+                                if (pixelType == 2)
                                 {
                                     float pixelValue = br.ReadSingle();
                                     frame.Data[i] = pixelValue;
                                 }
-                                else if(pixelType == 0)
+                                else if (pixelType == 0)
                                 {
                                     byte pixelValue = br.ReadByte();
-                                    frame.Data[i] = pixelValue; 
+                                    frame.Data[i] = pixelValue;
                                 }
                             }
                         }
@@ -83,7 +89,7 @@ namespace MRCSharpLib
                         frames.Add(frame);
                     }
 
-                    ret.Frames = frames; 
+                    ret.Frames = frames;
                 }
             }
 

@@ -10,5 +10,6 @@ namespace MRCSharpLib
         public List<MRCFrame> Frames { get; set; }
         public float MinPixelValue { get; set; }
         public float MaxPixelValue { get; set; }
+        public float PixelSize { get; set; }
     }
 }
