@@ -36,7 +36,7 @@ namespace Tester
 
         static void Main(string[] args)
         {
-            const string TomogramDirectory = @"D:\tomograms";
+            const string TomogramDirectory = @"C:\Users\Ben\Desktop\tomograms";
 
             Console.WriteLine("Loading main file..");
             MRCFile file = MRCParser.Parse(Path.Combine(TomogramDirectory, "tomography2_fullsirtcliptrim.mrc"));
@@ -99,7 +99,8 @@ namespace Tester
 
                                     if (!labeled)
                                     {
-                                        byte b = (byte)(frame.Data[i] * scaler);
+                                        float v = frame.Data[i] + Math.Abs(file.MinPixelValue);
+                                        byte b = (byte)(v * scaler);
                                         bmp.SetPixel((int)(x / skipLength), (int)(y / skipLength), Color.FromArgb(b, b, b));
                                         //vertices.Add(new PLYVertex { X = x, Y = y, Z = z, Color = Color.FromArgb(b, b, b) });
                                     }
