@@ -36,7 +36,8 @@ namespace Tester
 
         static void Main(string[] args)
         {
-            EdgeDetector.DoIt(); 
+            EdgeTracer.DoIt(); 
+            //LabeledEdgeFinder.DoIt(); 
 
             //const string TomogramDirectory = @"C:\Users\Ben\Desktop\tomograms";
 

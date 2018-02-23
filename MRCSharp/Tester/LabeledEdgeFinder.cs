@@ -8,7 +8,7 @@ using System.Text;
 
 namespace Tester
 {
-    public static class EdgeDetector
+    public static class LabeledEdgeFinder
     {
         public static void DoIt()
         {
@@ -54,35 +54,35 @@ namespace Tester
 
                                 bool labeled = false;
                                 int colorIndex = 0;
-                                foreach (MRCFile label in labelFiles)
-                                {
-                                    if (label.Frames[z].Data[i] > 0)
-                                    {
-                                        bool isEdge = false;
-                                        for (int y1 = y - 1; y1 <= y + 1; y1++)
-                                        {
-                                            for (int x1 = x - 1; x1 <= x + 1; x1++)
-                                            {
-                                                int offsetIndex = y1 * frame.Width + x1;
+                                //foreach (MRCFile label in labelFiles)
+                                //{
+                                //    if (label.Frames[z].Data[i] > 0)
+                                //    {
+                                //        bool isEdge = false;
+                                //        for (int y1 = y - 1; y1 <= y + 1; y1++)
+                                //        {
+                                //            for (int x1 = x - 1; x1 <= x + 1; x1++)
+                                //            {
+                                //                int offsetIndex = y1 * frame.Width + x1;
 
-                                                if (label.Frames[z].Data[offsetIndex] == 0)
-                                                {
-                                                    isEdge = true;
-                                                    break;
-                                                }
-                                            }
-                                        }
+                                //                if (label.Frames[z].Data[offsetIndex] == 0)
+                                //                {
+                                //                    isEdge = true;
+                                //                    break;
+                                //                }
+                                //            }
+                                //        }
 
-                                        if (isEdge)
-                                        {
-                                            byte b = (byte)(frame.Data[i] * scaler);
-                                            bmp.SetPixel((int)(x), (int)(y), colors[colorIndex]);
-                                            labeled = true;
-                                        }
-                                    }
+                                //        if (isEdge)
+                                //        {
+                                //            byte b = (byte)(frame.Data[i] * scaler);
+                                //            bmp.SetPixel((int)(x), (int)(y), colors[colorIndex]);
+                                //            labeled = true;
+                                //        }
+                                //    }
 
-                                    colorIndex++;
-                                }
+                                //    colorIndex++;
+                                //}
 
                                 if (!labeled)
                                 {
