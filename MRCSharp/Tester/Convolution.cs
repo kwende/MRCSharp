@@ -14,22 +14,24 @@ namespace Tester
         {
             public int Width { get; set; }
             public int Height { get; set; }
-            public byte[] Data { get; set; }
+            public int[] Data { get; set; }
         }
 
         private static float ComputeFilterSignal(Filter filter, byte[] data,
             int centerX, int centerY, int dataWidth)
         {
             float ret = 0.0f;
+            float sum = 0.0f; 
             for (int y = centerY - filter.Height / 2, i = 0; y < centerY + filter.Height/2; y++)
             {
                 for (int x = centerX - filter.Width / 2; x < centerX + filter.Width/2; x++, i++)
                 {
-                    int value = 255 - data[y * dataWidth + x];
+                    int value = data[y * dataWidth + x];
+                    sum += value; 
                     ret += filter.Data[i] * value;
                 }
             }
-            return ret;
+            return ret / sum;
         }
 
         private static Filter BuildFilter(int width, int height)
@@ -38,7 +40,7 @@ namespace Tester
 
             filter.Width = width;
             filter.Height = height;
-            filter.Data = new byte[width * height];
+            filter.Data = new int[width * height];
 
             int centerX = width / 2;
             int centerY = height / 2;
@@ -49,21 +51,33 @@ namespace Tester
             else
                 radius = height/2;
 
-            for (int y = 0, i = 0; y < height; y++)
+            int red = 0, black = 0; 
+            using (Bitmap bmp = new Bitmap(width, height))
             {
-                for (int x = 0; x < width; x++, i++)
+                for (int y = 0, i = 0; y < height; y++)
                 {
-                    float distance = (float)Math.Sqrt((y - centerY) * (y - centerY) + (x - centerX) * (x - centerX));
+                    for (int x = 0; x < width; x++, i++)
+                    {
+                        float distance = (float)Math.Sqrt((y - centerY) * (y - centerY) + (x - centerX) * (x - centerX));
 
-                    if (System.Math.Abs(distance - radius) <= 1)
-                    {
-                        filter.Data[i] = 1;
-                    }
-                    else
-                    {
-                        filter.Data[i] = 0;
+                        float delta = radius - distance; 
+
+                        if (delta >= 0 && delta <=1)
+                        {
+                            bmp.SetPixel(x, y, Color.Red); 
+                            filter.Data[i] = -5;
+                            red++; 
+                        }
+                        else
+                        {
+                            bmp.SetPixel(x, y, Color.Black); 
+                            filter.Data[i] = 1;
+                            black++; 
+                        }
                     }
                 }
+
+               bmp.Save("C:/users/brush/desktop/filter.bmp"); 
             }
 
             return filter;
@@ -71,7 +85,7 @@ namespace Tester
 
         public static void DoIt()
         {
-            using (Bitmap bmp = (Bitmap)Image.FromFile("c:/users/ben/desktop/vesicles.bmp"))
+            using (Bitmap bmp = (Bitmap)Image.FromFile("c:/users/brush/desktop/vesicles.bmp"))
             {
                 BitmapData bmd = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height),
                     ImageLockMode.ReadOnly, bmp.PixelFormat);
@@ -79,20 +93,17 @@ namespace Tester
                 byte[] buffer = new byte[bmd.Width * bmd.Stride];
                 Marshal.Copy(bmd.Scan0, buffer, 0, buffer.Length);
 
-                Filter filter = BuildFilter(10, 10);
+                int filterSize = 20; 
+
+                Filter filter = BuildFilter(filterSize, filterSize);
 
                 using (Bitmap heatMap = new Bitmap(bmp.Width, bmp.Height, PixelFormat.Format24bppRgb))
                 {
                     List<float> responses = new List<float>();
-                    for (int y = 5; y <= bmp.Height - 5; y++)
+                    for (int y = filterSize/2; y <= bmp.Height - filterSize / 2; y++)
                     {
-                        for (int x = 5; x < bmp.Width - 5; x++)
+                        for (int x = filterSize / 2; x < bmp.Width - filterSize / 2; x++)
                         {
-                            if(x == 32 && y == 80)
-                            {
-                                return; 
-                            }
-
                             float response = ComputeFilterSignal(filter, buffer, x, y, bmp.Width);
 
                             responses.Add(response);
@@ -104,16 +115,16 @@ namespace Tester
 
                     float scaler = 255 / (max - min * 1.0f);
 
-                    for (int y = 5, i=0; y <= bmp.Height - 5; y++)
+                    for (int y = filterSize / 2, i=0; y <= bmp.Height - filterSize / 2; y++)
                     {
-                        for (int x = 5; x < bmp.Width - 5; x++, i++)
+                        for (int x = filterSize / 2; x < bmp.Width - filterSize / 2; x++, i++)
                         {
                             byte b = (byte)(responses[i] * scaler);
                             heatMap.SetPixel(x, y, Color.FromArgb(b, b, b)); 
                         }
                     }
 
-                    heatMap.Save("C:/users/ben/desktop/fart.bmp"); 
+                    heatMap.Save("C:/users/brush/desktop/fart.bmp"); 
                 }
             }
         }
