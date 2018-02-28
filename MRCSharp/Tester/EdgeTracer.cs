@@ -21,10 +21,10 @@ namespace Tester
         {
             const int _width = 10;
             const int _height = 10;
-            const int _averageLength = 2; 
+            const int _averageLength = 1; 
 
-            private byte[] _averaged;
-            public byte[] Image
+            private int[] _averaged;
+            public int[] Image
             {
                 get
                 {
@@ -32,11 +32,13 @@ namespace Tester
                 }
             }
 
-            public float ComputeErrorAgainstPossibleCenter(Bitmap bmp, Point2D possibleNewCenter)
+            public float ComputeErrorAgainstPossibleCenter(Bitmap bmp, 
+                Point2D possibleNewCenter, Point2D oldCenter)
             {
                 float error = 0.0f;
 
-                byte[] bufferAroundPossibleNewCenter = BufferFromCenter(bmp, possibleNewCenter);
+                int[] bufferAroundPossibleNewCenter = BufferFromCenter(bmp, possibleNewCenter);
+                int[] bufferAroundOldCenter = BufferFromCenter(bmp, oldCenter); 
 
                 for (int c = 0; c < _averaged.Length; c++)
                 {
@@ -48,7 +50,7 @@ namespace Tester
                 return error;
             }
 
-            private byte[] BufferFromCenter(Bitmap bmp, Point2D center)
+            private int[] BufferFromCenter(Bitmap bmp, Point2D center)
             {
                 BitmapData bmd = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height),
                     ImageLockMode.ReadOnly, bmp.PixelFormat);
@@ -56,13 +58,13 @@ namespace Tester
                 byte[] fullBuffer = new byte[bmd.Width * bmd.Stride];
                 Marshal.Copy(bmd.Scan0, fullBuffer, 0, fullBuffer.Length);
 
-                byte[] focusedBuffer = new byte[_width * _height];
+                int[] focusedBuffer = new int[_width * _height];
                 for (int y = center.Y - _height / 2, dstIndex = 0; y < center.Y + _height / 2; y++)
                 {
                     for (int x = center.X - _width / 2; x < center.X + _width / 2; x++, dstIndex++)
                     {
                         int srcIndex = y * _width + x;
-                        focusedBuffer[dstIndex] = fullBuffer[srcIndex];
+                        focusedBuffer[dstIndex] = (fullBuffer[srcIndex]); 
                     }
                 }
                 bmp.UnlockBits(bmd);
@@ -70,12 +72,12 @@ namespace Tester
                 return focusedBuffer;
             }
 
-            private List<byte[]> _previousImages = null;
+            private List<int[]> _previousImages = null;
             public void Update(Bitmap bmp, Point2D center)
             {
                 if (_previousImages == null)
                 {
-                    _previousImages = new List<byte[]>();
+                    _previousImages = new List<int[]>();
                 }
 
                 if (_previousImages.Count >= _averageLength)
@@ -83,13 +85,13 @@ namespace Tester
                     _previousImages.RemoveAt(0);
                 }
 
-                byte[] focusedBuffer = BufferFromCenter(bmp, center);
+                int[] focusedBuffer = BufferFromCenter(bmp, center);
 
                 _previousImages.Add(focusedBuffer);
 
                 if (_averaged == null)
                 {
-                    _averaged = new byte[focusedBuffer.Length];
+                    _averaged = new int[focusedBuffer.Length];
                 }
 
                 for (int a = 0; a < _averaged.Length; a++)
@@ -97,7 +99,7 @@ namespace Tester
                     _averaged[a] = 0;
                 }
 
-                _averaged = new byte[focusedBuffer.Length];
+                _averaged = new int[focusedBuffer.Length];
                 for (int c = 0; c < _previousImages.Count; c++)
                 {
                     for (int a = 0; a < _previousImages[c].Length; a++)
@@ -117,32 +119,31 @@ namespace Tester
         {
             using (Bitmap bmp = (Bitmap)Image.FromFile("C:/users/ben/desktop/236.png"))
             {
-                int x = 330, y = 365;
+                Point2D oldCenter = new Point2D { X = 330, Y = 365 };
 
-                Color color = bmp.GetPixel(x, y);
                 bool[] visited = new bool[bmp.Width * bmp.Height];
 
-                int visitedIndex = y * bmp.Width + x;
+                int visitedIndex = oldCenter.Y * bmp.Width + oldCenter.X;
                 visited[visitedIndex] = true;
 
-                Snapshot sh = new Snapshot();
-                sh.Update(bmp, new Point2D { X = x, Y = y });
+                Snapshot sh = new Snapshot(); 
+                sh.Update(bmp, oldCenter);
 
-                for (int a = 0; a < 100; a++)
+                for (int a = 0; a < 1; a++)
                 {
                     float lowestError = float.MaxValue;
                     Point2D bestCenter = new Point2D();
 
-                    for (int y1 = y - 1; y1 < y + 1; y1++)
+                    for (int y1 = oldCenter.Y - 1; y1 < oldCenter.Y + 1; y1++)
                     {
-                        for (int x1 = x - 1; x1 < x + 1; x1++)
+                        for (int x1 = oldCenter.X - 1; x1 < oldCenter.X + 1; x1++)
                         {
                             int index = y1 * bmp.Width + x1;
 
                             if (!visited[index])
                             {
                                 float error =
-                                    sh.ComputeErrorAgainstPossibleCenter(bmp, new Point2D { X = x1, Y = y1 });
+                                    sh.ComputeErrorAgainstPossibleCenter(bmp, new Point2D { X = x1, Y = y1 }, oldCenter);
 
                                 if (error < lowestError)
                                 {
@@ -154,8 +155,7 @@ namespace Tester
                     }
 
                     visited[bestCenter.Y * bmp.Width + bestCenter.X] = true;
-                    x = bestCenter.X;
-                    y = bestCenter.Y;
+                    oldCenter = bestCenter; 
                     sh.Update(bmp, bestCenter); 
                 }
 
