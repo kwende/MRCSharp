@@ -11,7 +11,7 @@ namespace ImageSimulator
         static void Main(string[] args)
         {
             Map map = new Map();
-            map.Build(100, 100, 1000); 
+            map.Build(800, 800, 10000); 
         }
     }
 }

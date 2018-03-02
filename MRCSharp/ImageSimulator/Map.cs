@@ -117,7 +117,7 @@ namespace ImageSimulator
                     }
                 }
 
-                GaussianBlur blur = new GaussianBlur(.5); 
+                GaussianBlur blur = new GaussianBlur(1, 10); 
                 blur.ApplyInPlace(bmp); 
 
                 bmp.Save("c:/users/brush/desktop/turd.bmp");
