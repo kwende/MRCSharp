@@ -10,8 +10,8 @@ namespace ImageSimulator
     {
         static void Main(string[] args)
         {
-            Map map = new Map();
-            map.Build(800, 800, 10000); 
+            Tomogram tom = TomogramBuilder.BuildTomogram(800, 800, 10000, 5);
+            TomogramBuilder.SaveAsBitmap(tom, "C:/users/ben/desktop/fart.bmp"); 
         }
     }
 }

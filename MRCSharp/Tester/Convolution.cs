@@ -90,11 +90,6 @@ namespace Tester
                     {
                         for (int x = Size / 2; x < bmp.Width - Size / 2; x++)
                         {
-                            if(x == 71 && y == 56)
-                            {
-                                return; 
-                            }
-
                             float response = ComputeFilterSignal(filter, buffer, x, y, bmp.Width);
 
                             responses.Add(response);
@@ -118,7 +113,7 @@ namespace Tester
                         }
                     }
 
-                    heatMap.Save("C:/users/ben/desktop/fart.bmp"); 
+                    heatMap.Save("C:/users/brush/desktop/fart.bmp"); 
                 }
             }
         }
