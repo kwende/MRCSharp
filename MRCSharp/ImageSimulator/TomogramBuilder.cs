@@ -2,7 +2,9 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -10,13 +12,22 @@ namespace ImageSimulator
 {
     public static class TomogramBuilder
     {
+        public static void SaveAsDatFile(Tomogram tomogram, string path)
+        {
+            using (FileStream fs = File.Create(path))
+            {
+                BinaryFormatter bf = new BinaryFormatter();
+                bf.Serialize(fs, tomogram);
+            }
+        }
+
         public static void SaveAsBitmap(Tomogram tomogram, string path)
         {
             Color[] colors = new Color[tomogram.BackgroundDensity];
 
             for (int c = 0; c < colors.Length; c++)
             {
-                byte b = (byte)tomogram.Random.Next(55, 89);
+                byte b = (byte)tomogram.Random.Next(60, 91);
                 colors[c] = Color.FromArgb(b, b, b);
             }
 
@@ -27,9 +38,14 @@ namespace ImageSimulator
                     for (int x = 0; x < bmp.Width; x++, i++)
                     {
                         int colorIndex = tomogram.Data[i];
-                        if (colorIndex > 0)
+                        if (colorIndex > 0 && colorIndex <= tomogram.BackgroundDensity)
                         {
                             bmp.SetPixel(x, y, colors[colorIndex - 1]);
+                        }
+                        else
+                        {
+                            byte b = (byte)tomogram.Random.Next(55, 60);
+                            bmp.SetPixel(x, y, Color.FromArgb(b, b, b));
                         }
                     }
                 }
@@ -41,7 +57,7 @@ namespace ImageSimulator
             }
         }
 
-        public static Tomogram BuildTomogram(int width, int height, 
+        public static Tomogram BuildTomogram(int width, int height,
             int backgroundDensity, int vesicleCount)
         {
             Tomogram ret = new Tomogram();
@@ -49,11 +65,77 @@ namespace ImageSimulator
             ret.Height = height;
             ret.BackgroundDensity = backgroundDensity;
             ret.VesicleCount = vesicleCount;
-            ret.Random = new Random(); 
+            ret.Random = new Random();
+            ret.MinimumVesicleRadius = 10;
+            ret.MaximumVesicleRadius = 30;
 
-            BuildBackground(ret); 
+            BuildBackground(ret);
+            AddVesicles(ret);
 
-            return ret; 
+            return ret;
+        }
+
+        private static void AddVesicles(Tomogram tom)
+        {
+            List<Vesicle> vesicles = new List<Vesicle>();
+            for (int t = 0; t < tom.VesicleCount; t++)
+            {
+                // pick a random. 
+                int centerY = tom.Random.Next(0, tom.Height - 1);
+                int centerX = tom.Random.Next(0, tom.Width - 1);
+                float radius = tom.Random.Next(10, 30);
+                bool found = false;
+
+                // keep going until we find something, or break after 1000 attempts
+                for (int c = 0; c < 1000 && !found; c++)
+                {
+                    bool intercept = vesicles.Count == 0;
+                    foreach (Vesicle vesicle in vesicles)
+                    {
+                        float distance = (float)System.Math.Sqrt((centerY - vesicle.CenterY) * (centerY - vesicle.CenterY) +
+                            (centerX - vesicle.CenterX) * (centerX - vesicle.CenterX));
+                        if (distance > vesicle.Radius + radius)
+                        {
+                            intercept = true;
+                            break;
+                        }
+                    }
+
+                    if (intercept)
+                    {
+                        found = true;
+                        vesicles.Add(new Vesicle { CenterX = centerX, CenterY = centerY, Radius = radius });
+                    }
+                    else
+                    {
+                        centerY = tom.Random.Next(0, tom.Height - 1);
+                        centerX = tom.Random.Next(0, tom.Width - 1);
+                        radius = tom.Random.Next(10, 30);
+                    }
+                }
+            }
+
+            foreach (Vesicle vesicle in vesicles)
+            {
+                int centerY = vesicle.CenterY;
+                int centerX = vesicle.CenterX;
+
+                for (int y = centerY - (int)vesicle.Radius; y <= centerY + (int)vesicle.Radius; y++)
+                {
+                    for (int x = centerX - (int)vesicle.Radius; x <= centerX + (int)vesicle.Radius; x++)
+                    {
+                        float distance = (float)Math.Sqrt(
+                            (centerY - y) * (centerY - y) + (centerX - x) * (centerX - x));
+                        if (distance <= vesicle.Radius
+                            && distance >= vesicle.Radius - tom.Random.Next(2, 5)
+                            && y >= 0 && x >= 0 &&
+                            y < tom.Height && x < tom.Width)
+                        {
+                            tom.Data[y * tom.Width + x] = 0;
+                        }
+                    }
+                }
+            }
         }
 
         private static void BuildBackground(Tomogram tom)

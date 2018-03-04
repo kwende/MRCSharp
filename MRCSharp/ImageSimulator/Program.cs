@@ -10,8 +10,14 @@ namespace ImageSimulator
     {
         static void Main(string[] args)
         {
-            Tomogram tom = TomogramBuilder.BuildTomogram(800, 800, 10000, 5);
-            TomogramBuilder.SaveAsBitmap(tom, "C:/users/ben/desktop/fart.bmp"); 
+            Random rand = new Random(1234);
+            for (int c = 0; c < 1000; c++)
+            {
+                Console.WriteLine(c.ToString()); 
+                Tomogram tom = TomogramBuilder.BuildTomogram(860, 934, 100000, rand.Next(5, 25));
+                TomogramBuilder.SaveAsBitmap(tom, $"C:/users/ben/desktop/toms/{c}.bmp");
+                TomogramBuilder.SaveAsDatFile(tom, $"C:/users/ben/desktop/toms/{c}.dat");
+            }
         }
     }
 }

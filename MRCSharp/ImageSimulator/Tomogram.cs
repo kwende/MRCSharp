@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 namespace ImageSimulator
 {
+    [Serializable]
     public class Tomogram
     {
         public int[] Data { get; set; }
@@ -16,6 +17,8 @@ namespace ImageSimulator
         public int Width { get; set; }
         public int Height { get; set; }
         public int VesicleCount { get; set; }
+        public int MinimumVesicleRadius { get; set; }
+        public int MaximumVesicleRadius { get; set; }
         public Random Random { get; set; }
     }
 }
