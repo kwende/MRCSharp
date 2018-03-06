@@ -52,6 +52,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="RandomNormal.cs" />
     <Compile Include="Tomogram.cs" />
     <Compile Include="TomogramBuilder.cs" />
     <Compile Include="Program.cs" />

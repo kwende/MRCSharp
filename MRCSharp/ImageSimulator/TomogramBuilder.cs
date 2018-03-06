@@ -27,7 +27,7 @@ namespace ImageSimulator
 
             for (int c = 0; c < colors.Length; c++)
             {
-                byte b = (byte)tomogram.Random.Next(60, 91);
+                byte b = (byte)RandomNormal.Next(tomogram.Random, 85, 15);
                 colors[c] = Color.FromArgb(b, b, b);
             }
 
@@ -42,15 +42,26 @@ namespace ImageSimulator
                         {
                             bmp.SetPixel(x, y, colors[colorIndex - 1]);
                         }
-                        else
+                    }
+                }
+
+                GaussianBlur blur = new GaussianBlur(1, 8);
+                blur.ApplyInPlace(bmp);
+
+                for (int y = 0, i = 0; y < bmp.Height; y++)
+                {
+                    for (int x = 0; x < bmp.Width; x++, i++)
+                    {
+                        int colorIndex = tomogram.Data[i];
+                        if (colorIndex == 0)
                         {
-                            byte b = (byte)tomogram.Random.Next(55, 60);
+                            byte b = (byte)tomogram.Random.Next(50, 60);
                             bmp.SetPixel(x, y, Color.FromArgb(b, b, b));
                         }
                     }
                 }
 
-                GaussianBlur blur = new GaussianBlur(1, 10);
+                blur = new GaussianBlur(1, 8);
                 blur.ApplyInPlace(bmp);
 
                 bmp.Save(path);
@@ -83,25 +94,25 @@ namespace ImageSimulator
                 // pick a random. 
                 int centerY = tom.Random.Next(0, tom.Height - 1);
                 int centerX = tom.Random.Next(0, tom.Width - 1);
-                float radius = tom.Random.Next(10, 30);
+                float radius = tom.Random.Next(tom.MinimumVesicleRadius, tom.MaximumVesicleRadius);
                 bool found = false;
 
                 // keep going until we find something, or break after 1000 attempts
                 for (int c = 0; c < 1000 && !found; c++)
                 {
-                    bool intercept = vesicles.Count == 0;
+                    bool intercept = false;
                     foreach (Vesicle vesicle in vesicles)
                     {
                         float distance = (float)System.Math.Sqrt((centerY - vesicle.CenterY) * (centerY - vesicle.CenterY) +
                             (centerX - vesicle.CenterX) * (centerX - vesicle.CenterX));
-                        if (distance > vesicle.Radius + radius)
+                        if (distance <= (vesicle.Radius + radius + 10))
                         {
                             intercept = true;
                             break;
                         }
                     }
 
-                    if (intercept)
+                    if (!intercept || vesicles.Count == 0)
                     {
                         found = true;
                         vesicles.Add(new Vesicle { CenterX = centerX, CenterY = centerY, Radius = radius });
@@ -110,7 +121,7 @@ namespace ImageSimulator
                     {
                         centerY = tom.Random.Next(0, tom.Height - 1);
                         centerX = tom.Random.Next(0, tom.Width - 1);
-                        radius = tom.Random.Next(10, 30);
+                        radius = tom.Random.Next(tom.MinimumVesicleRadius, tom.MaximumVesicleRadius);
                     }
                 }
             }
@@ -126,8 +137,9 @@ namespace ImageSimulator
                     {
                         float distance = (float)Math.Sqrt(
                             (centerY - y) * (centerY - y) + (centerX - x) * (centerX - x));
+
                         if (distance <= vesicle.Radius
-                            && distance >= vesicle.Radius - tom.Random.Next(2, 5)
+                            && distance >= vesicle.Radius - tom.Random.Next(1, 3)
                             && y >= 0 && x >= 0 &&
                             y < tom.Height && x < tom.Width)
                         {
@@ -144,8 +156,8 @@ namespace ImageSimulator
 
             Dictionary<int, List<int>> lookup = new Dictionary<int, List<int>>();
 
-            // initialize
-            for (int p = 1; p <= tom.BackgroundDensity; p++)
+            // initialize by smattering the first ten percent. 
+            for (int p = 1; p <= tom.BackgroundDensity * .1; p++)
             {
                 int x = tom.Random.Next(0, tom.Width);
                 int y = tom.Random.Next(0, tom.Height);
